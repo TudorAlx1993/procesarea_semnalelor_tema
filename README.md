@@ -1,2 +1,2 @@
-# procesarea_semnalelor_tema
-Homeworks for signal processing
+Student: Tudor-Alexandru Alexandrescu
+Grupa:364
