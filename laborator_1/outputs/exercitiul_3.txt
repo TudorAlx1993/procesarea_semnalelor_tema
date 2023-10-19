@@ -1,0 +1,2 @@
+a) Intervalul de timp intre 2 esantioane este 0.0005 secunde.
+b) Dupa o ora de achizitie semnalul intregistrat va ocupa 28,800,000 biti sau 3,600,000 bytes.

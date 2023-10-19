@@ -9,8 +9,8 @@ def main():
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
 
-    exercise_1(output_dir)
-    exercise_2(output_dir)
+    # exercise_1(output_dir)
+    # exercise_2(output_dir)
     exercise_3(output_dir)
 
 
@@ -66,7 +66,31 @@ def exercise_2(output_dir):
 
 
 def exercise_3(output_dir):
-    pass
+    frequency = 2000
+
+    # punctul a)
+    time_step = 1 / frequency
+    message = 'a) Intervalul de timp intre 2 esantioane este {} secunde.\n'.format(time_step)
+
+    # punctul b)
+    # time_step este 0.0005 secunde
+    '''
+    0.0005 secunde ....... 1 esantion ..... 4 biti  
+    3600 secunde .......... x esantionae ..... y biti 
+    '''
+    seconds_per_hour = 3600
+    no_samples_per_hour = seconds_per_hour / time_step
+    bites_per_sample = 4
+    bites_per_hour = bites_per_sample * no_samples_per_hour
+    bites_per_byte = 8
+    bytes_per_hour = bites_per_hour / bites_per_byte
+    message += 'b) Dupa o ora de achizitie semnalul intregistrat va ocupa {:,.0f} biti sau {:,.0f} bytes.\n'.format(
+        bites_per_hour, bytes_per_hour)
+
+    file_name = 'exercitiul_3.txt'
+    file = open(os.path.join(output_dir, file_name), 'w')
+    file.write(message)
+    file.close()
 
 
 if __name__ == '__main__':
