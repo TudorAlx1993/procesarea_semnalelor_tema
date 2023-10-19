@@ -10,8 +10,8 @@ def main():
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
 
-    # exercitiul_1(output_dir)
-    #exercitiul_2(output_dir)
+    exercitiul_1(output_dir)
+    exercitiul_2(output_dir)
     exercitiul_8(output_dir)
 
 
@@ -19,7 +19,7 @@ def exercitiul_8(output_dir):
     min,max=-np.pi/2,np.pi/2
     no_points=10**5
     alpha=np.linspace(min,max,num=no_points)
-    
+
 
 def exercitiul_2(output_dir):
     min = 0.0
