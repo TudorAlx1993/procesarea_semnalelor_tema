@@ -10,8 +10,8 @@ def main():
         os.mkdir(output_dir)
 
     # exercise_1(output_dir)
-    # exercise_2(output_dir)
-    exercise_3(output_dir)
+    exercise_2(output_dir)
+    # exercise_3(output_dir)
 
 
 def exercise_1(output_dir):
@@ -62,7 +62,40 @@ def exercise_1(output_dir):
 
 
 def exercise_2(output_dir):
-    pass
+    # punctul e)
+    n = 128
+    random_matrix = np.random.rand(n, n)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    # am facut-o grayscale deoarece imaginele color au trei dimensiuni (adica cub si nu matrice cum am generat-o eu)
+    ax.imshow(random_matrix, cmap='gray')
+    ax.set_xlabel('Width')
+    ax.set_ylabel('Height')
+    ax.set_title('Random image based on a uniform distribution over $[0,1)$ interval')
+    fig.savefig(os.path.join(output_dir, 'exercitiul_2_punctul_e.png'))
+
+    # punctul f)
+    n = 128
+    '''
+    Algoritmul de generara a matricii:
+        * pas 1:  - generam o matrice in care fiecare linie este un vector de 0 sau un vector de 1
+                  - daca indicele liniei este par atunci vectorul este generat cu np.zeros(n)
+                  - daca indicele liniei este impar atunci vectorul este generat cu np.ones(n)
+                  - numaram incepand cu 0 (adica indicele primei linii este 0)
+        * pas 2:  generam transpusa matricei de la pasul anterior
+        * pas 3:  pe fiecare coloana calculam suma cumulativa
+    '''
+    matrix = np.array([np.zeros(shape=n) if row_index % 2 == 0 else np.ones(shape=n) for row_index in range(n)])
+    matrix = matrix.transpose()
+    for col_index in range(matrix.shape[1]):
+        matrix[:, col_index] = np.cumsum(matrix[:, col_index])
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(matrix, cmap='gray')
+    ax.set_xlabel('Width')
+    ax.set_ylabel('Height')
+    ax.set_title('My image')
+    fig.savefig(os.path.join(output_dir, 'exercitiul_2_punctul_f.png'))
 
 
 def exercise_3(output_dir):
