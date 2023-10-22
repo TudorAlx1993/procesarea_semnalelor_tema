@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import signal
 
 
 def main():
@@ -9,9 +10,9 @@ def main():
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
 
-    # exercise_1(output_dir)
+    exercise_1(output_dir)
     exercise_2(output_dir)
-    # exercise_3(output_dir)
+    exercise_3(output_dir)
 
 
 def exercise_1(output_dir):
@@ -62,6 +63,79 @@ def exercise_1(output_dir):
 
 
 def exercise_2(output_dir):
+    # punctul a)
+    amplitude = 1.0
+    phase = 0
+    frequency = 400
+    count = 1600
+    start = 0.0
+    # intrucat nu se spune nimic despre momentul in care se termina semnalul in cerinta
+    # voi folosi intormatia din laborator referitoare la relatia dintre frecventa si periada semnalului
+    end = 1 / frequency
+    t = np.linspace(start=start, stop=end, num=count)
+    x = amplitude * np.sin(2 * np.pi * frequency * t + phase)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.plot(t, x, linewidth=4.0, color='red')
+    ax.set_xlabel('Time (t)')
+    ax.set_ylabel('Value')
+    ax.set_title('Sinusoidal signal at a frequency of {} hertz'.format(frequency))
+    fig.savefig(os.path.join(output_dir, 'exercitiul_2_punctul_a.png'))
+
+    # punctul b)
+    amplitude = 1.0
+    phase = 0.0
+    frequency = 800
+    start = 0.0
+    end = 3.0
+    # aici am folosit formula din cursul 1
+    # adica numarul total de masuratori
+    count = int((end - start) * frequency)
+    t = np.linspace(start=start, stop=end, num=count)
+    x = amplitude * np.sin(2 * np.pi * frequency * t + phase)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.plot(t, x, linewidth=4.0, color='red')
+    ax.set_xlabel('Time (t)')
+    ax.set_ylabel('Value')
+    ax.set_title('Sinusoidal signal at a frequency of {} hertz that lasts {:.2f} seconds'.format(frequency, end))
+    fig.savefig(os.path.join(output_dir, 'exercitiul_2_punctul_b.png'))
+
+    # punctul d)
+    start = 0.0
+    frequency = 300
+    end = 1 / frequency
+    count = 1000
+    t = np.linspace(start=start, stop=end, num=count)
+    # aici am folosit definitia semnalului de pe wikipedia: https://en.wikipedia.org/wiki/Square_wave
+    # adica x(t)=sgn(sin(2*pi*f*t))
+    x = np.sign(np.sin(2 * np.pi * frequency * t))
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.plot(t, x, linewidth=4.0, color='red')
+    ax.set_xlabel('Time (t)')
+    ax.set_ylabel('Value')
+    ax.set_title('Square signal at a frequency of {} hertz'.format(frequency))
+    fig.savefig(os.path.join(output_dir, 'exercitiul_2_punctul_d.png'))
+
+    # punctul c)
+    start = 0.0
+    frequency = 240
+    end = 1 / frequency
+    count = 100
+    t = np.linspace(start=start, stop=4 * end, num=count)
+    # nu am reusit sa generez semnalul utilizand functiile np.floor sau np.mod
+    # pe google am gasit documentatia functiei sawtooth din scipy https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sawtooth.html
+    # doar aici am vazut un exemplu in care acest semnal poate fi generat in functie de frecventa dorita
+    x = signal.sawtooth(2 * np.pi * frequency * t)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.plot(t, x, linewidth=4.0, color='red')
+    ax.set_xlabel('Time (t)')
+    ax.set_ylabel('Value')
+    ax.set_title('Sawtooth signal at a frequency of {} hertz'.format(frequency))
+    fig.savefig(os.path.join(output_dir, 'exercitiul_2_punctul_c.png'))
+
     # punctul e)
     n = 128
     random_matrix = np.random.rand(n, n)
