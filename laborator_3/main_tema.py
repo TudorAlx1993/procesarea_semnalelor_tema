@@ -15,7 +15,7 @@ def main():
 
 
 def exercise_0(abs_error=10 ** -10):
-    # calculate fourier transformation using 4 different methods
+    # calculate fourier transformation using 3 different methods
 
     amplitude = 1.0
     frequency = 4
@@ -86,7 +86,61 @@ def exercise_1(N, output_dir, abs_error=10 ** -10):
 
 
 def exercise_2(output_dir):
-    pass
+    amplitude = 1.0
+    phase = 0.0
+    frequency = 3.5
+
+    start, stop = 0.0, 1.0
+    step = 0.0005
+    t = np.arange(start=start, stop=stop, step=step)
+    x = amplitude * np.sin(2 * np.pi * frequency * t + phase)
+    no_samples = x.shape[0]
+
+    y = np.array([x[index] * np.exp(-2 * np.pi * 1j * step) for index, step in zip(range(no_samples), t)])
+
+    fig, (left_ax, right_ax) = plt.subplots(nrows=1, ncols=2, figsize=(15, 10))
+    left_ax.plot(t, x, color='blue', linewidth=4.5)
+    left_ax.axhline(y=0.0, color='black')
+    left_ax.set_xlabel('Time')
+    left_ax.set_ylabel('Value')
+    left_ax.set_title('Sinosoidal signal with $\omega$={:.2f} Hertz'.format(frequency))
+    axes_limits = (-1.0, 1.0)
+    right_ax.plot(y.real, y.imag, color='red', linewidth=3.0)
+    right_ax.axvline(x=0.0, color='black')
+    right_ax.axhline(y=0.0, color='black')
+    right_ax.set_xlim(axes_limits)
+    right_ax.set_ylim(axes_limits)
+    right_ax.set_xlabel('Real part')
+    right_ax.set_ylabel('Imaginary part')
+    right_ax.set_title('Complex unitary circle')
+    fig.savefig(os.path.join(output_dir, 'problem_2_fig_1.png'))
+    fig.savefig(os.path.join(output_dir, 'problem_2_fig_1.pdf'), format='pdf')
+
+    omega_values = [1, 2.5, 3.5, 10]
+    z_values = [
+        np.array([x[index] * np.exp(-2 * np.pi * 1j * omega * step) for index, step in zip(range(no_samples), t)]) for
+        omega in omega_values]
+
+    nrows = len(omega_values) // 2
+    ncols = len(omega_values) // 2
+    assert (nrows * ncols) == len(omega_values)
+
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(15, 15))
+    axes = axes.flatten()
+    for z, omega, ax in zip(z_values, omega_values, axes):
+        ax.plot(z.real, z.imag, color='red', linewidth=3.0)
+        ax.set_xlim(axes_limits)
+        ax.set_ylim(axes_limits)
+        ax.axvline(x=0.0, color='black')
+        ax.axhline(y=0.0, color='black')
+        ax.set_xlabel('Real part')
+        ax.set_ylabel('Imaginary part')
+        ax.set_title('Complex unitary circle: $\omega={}$ Hertz'.format(omega))
+    fig.tight_layout()
+    fig.savefig(os.path.join(output_dir, 'problem_2_fig_2.png'))
+    fig.savefig(os.path.join(output_dir, 'problem_2_fig_2.pdf'), format='pdf')
+
+    # nu stiu sa fac culoarea graficului in fuctie de distanta pana la origine
 
 
 def exercise_3(output_dir):
