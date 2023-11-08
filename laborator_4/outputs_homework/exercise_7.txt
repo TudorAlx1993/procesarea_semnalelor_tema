@@ -1,0 +1,3 @@
+Signal power = 90 dB
+SNR_DB = 80 dB
+Noise power = 9e-07 dB

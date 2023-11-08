@@ -1,0 +1,4 @@
+Contrabas:
+	 * frecventa minima: 40 Hz
+	 * frecventa maxima: 200 Hz
+Frecventa minima de esantionare trebuie sa fie strict mai mare ca 400 Hz pentru a nu exista pierderi de informatie.
