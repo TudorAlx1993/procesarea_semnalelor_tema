@@ -206,7 +206,23 @@ def exercise_6(file_name, output_dir):
 
     rate, signal = wavfile.read(file_name)
 
-    # am incercat eu ceva dar nu mi-a iesit ce trebuia
+    n = signal.shape[0]
+    grouping_ratio = 0.002
+    overlap_ratio = 0.5
+    no_elements_per_group = int(grouping_ratio * n)
+    no_overlaps = int(overlap_ratio * no_elements_per_group)
+    groups_of_signals = [signal[index:index + no_elements_per_group] for index in
+                         range(0, n - no_elements_per_group, no_overlaps)]
+    groups_of_signals_abs_fft = np.array(
+        [np.log10(np.abs(np.fft.fft(signal)[:(signal.shape[0] // 2)])) for signal in groups_of_signals]).transpose()
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(groups_of_signals_abs_fft)
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Log10 of Absolute Frequency')
+    ax.set_title('Spectogram of vowels')
+    fig.savefig(os.path.join(output_dir, 'exercise_6.png'))
+    fig.savefig(os.path.join(output_dir, 'exercise_6.pdf'), format='pdf')
 
 
 def exercise_7(output_dir):

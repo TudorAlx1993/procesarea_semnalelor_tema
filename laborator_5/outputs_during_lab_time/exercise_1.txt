@@ -1,0 +1,4 @@
+Exercitiul 1
+
+Punctul a):
+	* inregistrarile din fisierul de input apar la intervale de 1 ore
