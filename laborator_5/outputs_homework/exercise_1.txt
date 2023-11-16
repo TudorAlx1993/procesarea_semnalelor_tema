@@ -1,0 +1,26 @@
+Exercitiul 1
+
+Punctul a):
+	* inregistrarile din fisierul de input apar la intervale de 1 ore
+	* frecventa de esantionare este 0.0002777777777777778 Hz
+Punctul b):
+	* intervalul de timp al esantioanelor este cuprins intre 2012-08-25 00:00:00 si 2014-09-25 23:00:00
+Punctul c):
+	* frecventa maxima prezenta in semnal este maxim 50% din frecventa de esantionare, adica cel mult 0.0001388888888888889 Hz
+Punctul d):
+	* a se vedea fisierul ex_1_d.png din directorul ./outputs_homework
+Punctul e)
+	* modulul transformatei Fourier pentru frecventa 0.0 Hz este 138.9581
+	* deci exista o componenta continua in cadrul semnalului
+	* a se vedea fisierul ex_1_e.png din directorul ./outputs_homework pentru a vedea semnalul fara componenta continua
+Punctul f):
+	* pentru acest subpunct nu voi lua in calcul frecventa 0 (cea aferenta componentei continue)
+	* primele 4 frecvente dominante in ordinea inversa a modulului transformatei Fourier sunt:
+		* frecventa 1.5190734866989925e-08 Hz are modulul transformatei Fourier 66.85385766393449
+		* frecventa 3.038146973397985e-08 Hz are modulul transformatei Fourier 35.2191729779369
+		* frecventa 1.1575339968646325e-05 Hz are modulul transformatei Fourier 27.10202228761556
+		* frecventa 4.557220460096978e-08 Hz are modulul transformatei Fourier 25.21991648404482
+Punctul g):
+	* a se vedea fisierul ex_1_g.png din directorul ./outputs_homework
+Punctul h):
+Punctul i):
