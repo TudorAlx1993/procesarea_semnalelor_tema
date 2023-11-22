@@ -1,0 +1,6 @@
+Alegerea parametrilor:
+	* filtrul Batterworth:
+		* nu sunt diferente semnificative intre semnalele filtrate atunci cand ordinul filtrului este 3, 5 sau 7
+	* filtrul Chebyshev:
+		* am facut produsul cartezian intre multimile [3,5,7] (pentru ordinul filtrului) si [3,5,7] (pentru factorul de atenuare)
+		* am ales N=7, rp=7 ca parametri optimi

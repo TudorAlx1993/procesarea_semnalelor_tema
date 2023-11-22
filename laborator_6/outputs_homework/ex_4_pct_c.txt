@@ -1,0 +1,6 @@
+	* frecventa de taiere este mediana frecventelor, adica 6.944444444444443e-05 Hz
+	* am ales mediana frecventelor deoarece:
+		* toate frecventele inalte vor fi peste mediana si implicit vor fi eliminate prin aceasta metoda
+		* media nu este intotdeauna semnificativa din punct de vedere statistic
+		* semnalul filtrat prin intermediul medianei va fi mult mai smooth
+	* frecventa de taiere normalizata in intervalul [0,1] este 0.5000

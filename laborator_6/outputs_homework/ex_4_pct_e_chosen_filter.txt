@@ -1,0 +1,3 @@
+Aleg filtrul Chebyshev deoarece reduce foarte mult din amplitudinea semnalului original, adica scapam de componentele de frecventa inalta.
+Astfel putem observa mai usor pattern-uri specifice anumitor ore dintr-o zi.
+ 
