@@ -14,28 +14,27 @@ def main():
 
 
 def exercise_2(time, signal_original, alpha_initial, output_dir):
+    if not (type(alpha_initial) is float and alpha_initial >= 0.0 and alpha_initial <= 1.0):
+        raise ValueError("parameter alpha_initial should be a float number between 0.0 and 1.0!")
+
     assert alpha_initial >= 0.0 and alpha_initial <= 1.0
 
     n = signal_original.shape[0]
 
-    exp_smoothing_signal_v1 = np.zeros(shape=n)
-    exp_smoothing_signal_v1[0] = signal_original[0]
+    exp_smoothing_signal_initial_alpha_v1 = np.zeros(shape=n)
+    exp_smoothing_signal_initial_alpha_v1[0] = signal_original[0]
     for time_step in range(1, n):
-        exp_smoothing_signal_v1[time_step] = alpha_initial * signal_original[time_step] + (1 - alpha_initial) * \
-                                             exp_smoothing_signal_v1[time_step - 1]
+        exp_smoothing_signal_initial_alpha_v1[time_step] = alpha_initial * signal_original[time_step] + (
+                    1 - alpha_initial) * \
+                                                           exp_smoothing_signal_initial_alpha_v1[time_step - 1]
 
-    exp_smoothing_signal_v2 = np.zeros(shape=n)
-    exp_smoothing_signal_v2[0] = signal_original[0]
-    exp_smoothing_signal_v2[1:] = [alpha_initial * np.sum(
-        [(1 - alpha_initial) ** (time_step - index) * signal_original[index] for index in range(1, time_step + 1)]) + (
-                                           1 - alpha_initial) ** time_step * signal_original[0] for time_step in
-                                   range(1, n)]
+    exp_smoothing_intial_alpha_signal_v2 = exponential_smoothing_of_signal(signal_original, alpha_initial)
 
-    assert np.allclose(exp_smoothing_signal_v1, exp_smoothing_signal_v2)
+    assert np.allclose(exp_smoothing_signal_initial_alpha_v1, exp_smoothing_intial_alpha_signal_v2)
 
     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(10, 15))
     axes[0].plot(time, signal_original, linewidth=3.0, label='Original signal', color='blue')
-    axes[0].plot(time, exp_smoothing_signal_v1, linewidth=3.0, label='Exponential smoothing', color='red')
+    axes[0].plot(time, exp_smoothing_signal_initial_alpha_v1, linewidth=3.0, label='Exponential smoothing', color='red')
     axes[0].set_title('Original vs exponential smoothing with initial guess for alpha={}'.format(alpha_initial))
     axes[0].legend()
     for ax in axes:
@@ -45,8 +44,20 @@ def exercise_2(time, signal_original, alpha_initial, output_dir):
     fig.savefig(os.path.join(output_dir, 'exercise_2.png'))
     fig.savefig(os.path.join(output_dir, 'exercise_2.pdf'), format='pdf')
 
-    alpha_values=np.linspace(0.0,1.0,10**3,True)
-    
+    alpha_values = np.linspace(0.0, 1.0, 10 ** 3, True)
+
+
+def exponential_smoothing_of_signal(signal, alpha):
+    n = signal.shape[0]
+    exp_smoothing_signal = np.zeros(shape=n)
+    exp_smoothing_signal[0] = signal[0]
+    exp_smoothing_signal[1:] = [alpha * np.sum(
+        [(1 - alpha) ** (time_step - index) * signal[index] for index in range(1, time_step + 1)]) + (
+                                        1 - alpha) ** time_step * signal[0] for time_step in
+                                range(1, n)]
+
+    return exp_smoothing_signal
+
 
 # acest exercitiu l-am luat din laboratorul precedent
 def exercise_1(n, output_dir, seed=33):
