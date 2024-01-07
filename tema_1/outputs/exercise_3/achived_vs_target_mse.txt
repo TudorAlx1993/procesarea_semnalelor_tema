@@ -1,0 +1,2 @@
+Target MSE: 0.7000
+Achived MSE: 0.6982
