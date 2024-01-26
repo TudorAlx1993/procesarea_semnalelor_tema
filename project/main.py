@@ -15,6 +15,7 @@ def main():
     kernel_size = (5, 5)
     sigma = 1.0
     blurred_image_with_convolution = gaussian_blur_with_convolution(image, kernel_size, sigma, output_dir)
+    '''
     blurred_image_in_frequency = gaussian_blur_in_frequency(image, 100.0, output_dir)
     blurred_image_with_opencv = gaussian_blur_with_opencv(image.astype('uint8'), kernel_size, sigma, output_dir)
     # ne uitam la diferentele intre cele 3 variante de gaussian blurring
@@ -23,32 +24,145 @@ def main():
                                                                         sigma): blurred_image_with_convolution,
             'blurring in frequency': blurred_image_in_frequency,
             'blurring with opencv\nkernel_size={} sigma={}'.format(kernel_size, sigma): blurred_image_with_opencv}
-    plot_images(data, 'gaussian_blurring.png', output_dir)
+    plot_images(data, 'gaussian_blurring.png', output_dir)'''
 
     # pasul 2: calculul gradientului
     output_dir = os.path.join(template_output_dir, 'gradients')
-    sobel_gradient_magnitude, sobel_gradient_orientation = compute_gradients(blurred_image_with_convolution, 'sobel',
+
+    # utilizam operatorii lui Sobel
+    gradient_method = 'sobel'
+    sobel_gradient_magnitude, sobel_gradient_orientation = compute_gradients(blurred_image_with_convolution,
+                                                                             gradient_method,
                                                                              output_dir)
+    # utilizam operatorii lui Prewitt
+    gradient_method = 'prewitt'
     prewitt_gradient_magnitude, prewitt_gradient_orientation = compute_gradients(blurred_image_with_convolution,
-                                                                                 'prewitt',
+                                                                                 gradient_method,
                                                                                  output_dir)
+
+    # utilizam operatorii lui Scharr
+    gradient_method = 'scharr'
     scharr_gradient_magnitude, scharr_gradient_orientation = compute_gradients(blurred_image_with_convolution,
-                                                                               'scharr',
+                                                                               gradient_method,
                                                                                output_dir)
 
+    # pasul 3: non maxima supression
+    output_dir = os.path.join(template_output_dir, 'non_maxima_suppression')
 
-def compute_gradients(image, method, output_dir=None):
+    # utilizand operatorii lui Sobel
+    gradient_method = 'sobel'
+    sobel_suppressed_gradient_magnitude = non_maxima_suppression(sobel_gradient_magnitude, sobel_gradient_orientation,
+                                                                 gradient_method, output_dir)
+
+    # utilizand operatorii lui Prewitt
+    gradient_method = 'prewitt'
+    prewitt_suppressed_gradient_magnitude = non_maxima_suppression(prewitt_gradient_magnitude,
+                                                                   prewitt_gradient_orientation,
+                                                                   gradient_method, output_dir)
+
+    # utilizand operatorii lui Scharr
+    gradient_method = 'scharr'
+    scharr_suppressed_gradient_magnitude = non_maxima_suppression(scharr_gradient_magnitude,
+                                                                  scharr_gradient_orientation,
+                                                                  gradient_method, output_dir)
+
+
+def non_maxima_suppression(gradient_magnitude, gradient_orientation, gradient_method, output_dir=None):
+    if not (isinstance(gradient_magnitude, np.ndarray) and gradient_magnitude.ndim == 2):
+        raise ValueError('parameter gradient_magnitude should be an 2D numpy array!')
+    if not (isinstance(gradient_orientation, np.ndarray) and gradient_orientation.ndim == 2):
+        raise ValueError('parameter gradient_orientation should be an 2D numpy array!')
+
+    '''
+    Descrierea algoritmului din aceasta functie:
+        * matricea cu orientarea gradientului contine unghiuri masurate in radiani
+        * putem transforma in grade sau putem lucra direct cu radiani: in continuare lucrez in radiani
+        * fiecare pixel care nu e pe margine este inconjurat de alti 4 pixeli: la E, W, S si N
+        * deci avem 4 directii: orizontala, verticala, si cele 2 diagonale
+        * nu ne intereseaza daca orientarea gradientului este de la nord la sus sau de la sud la nord deoarece
+          in ambele cazuri la aceiasi vecini pixeli ne vom uita
+        * astfel pe cercul trigonometric putem ignora axa OY negativa: adica adunam pi=3.14159 la unghiurile negative
+        * va trebui sa discretizam cercul trigonometric in regiuni in functie de orientarea gradientului intrucat
+          matricea cu orientarea gradientului contine foarte multe valori care nu corespund cu cele 4 directii din matricea cu magnitudinea gradientului
+        * astfel vom avea urmatoarele regiuni: 
+            * o regiune centrata in 0pi radiani
+            * o regiune centrata in 0.25pi radiani
+            * o regiune centrata in 0.5pi radiani
+            * o regiune centrata in 0.75pi radiani 
+            * o regiune centrata in pi radiani
+        * echivalent intervalele pentru cele 4 regiuni se pot obtine utilizand pasi de incrementare pentru 0.125pi radiani:
+            * intre 0pi radiani si 0.125pi radiani -> regiunea centrata in 0pi radiani
+            * intre 0.125pi radiani si 0.375pi radiani -> regiunea centrata in 0.25pi radiani
+            * intre 0.375pi radiani si 0.625pi radiani -> regiunea centrata in 0.5pi radiani
+            * intre 0.625pi radiani si 0.875pi radiani -> regiunea centrata in 0.75pi radiani
+            * intre 0.875pi radiani si pi radiani -> regiunea centrata in pi radiani
+        * stiu ca implementarea canny din opencv face si o interpolare, dar eu am decis sa utilizez doar o discretizare
+        * pentru fiecare pixel din matricea cu magnitudinea gradientului ne uitam la magnitudinea celor doi vecini, iar
+          daca acesta este mai mare decat magnitudinea celor doi vecini il pastram, altfel il inlocuim cu 0 
+    '''
+
+    gradient_orientation[gradient_orientation < 0] += np.pi
+
+    suppressed_gradient_magnitude = np.zeros_like(gradient_magnitude)
+    for row_index in range(gradient_magnitude.shape[0]):
+        for col_index in range(gradient_magnitude.shape[1]):
+            # nu ne uitam la vecinii pixelilor aflati pe margine
+            if row_index == 0 or col_index == 0:
+                continue
+            if row_index == gradient_magnitude.shape[0] - 1 or col_index == gradient_magnitude.shape[1] - 1:
+                continue
+
+            orientation_angle = gradient_orientation[row_index, col_index]
+            # ne uitam la vecinii de la vest si est
+            if orientation_angle >= 0 and orientation_angle < 0.125 * np.pi:
+                neighbours_indeces = ((row_index, col_index - 1), (row_index, col_index + 1))
+            # ne uitam la vecinii de la NE si SW
+            elif orientation_angle >= 0.125 * np.pi and orientation_angle < 0.375 * np.pi:
+                neighbours_indeces = ((row_index - 1, col_index + 1), (row_index + 1, col_index - 1))
+            # ne uitam la vecinii de la N si S
+            elif orientation_angle >= 0.375 * np.pi and orientation_angle < 0.625 * np.pi:
+                neighbours_indeces = ((row_index - 1, col_index), (row_index + 1, col_index))
+            # ne uitam la vecinii de la NW si SE
+            elif orientation_angle >= 0.625 * np.pi and orientation_angle < 0.875 * np.pi:
+                neighbours_indeces = ((row_index - 1, col_index - 1), (row_index + 1, col_index + 1))
+            # ne uitam la vecinii de la vest si est
+            elif orientation_angle >= 0.875 * np.pi and orientation_angle <= np.pi:
+                neighbours_indeces = ((row_index, col_index - 1), (row_index, col_index + 1))
+            else:
+                raise RuntimeError(
+                    'there was a problem when traversing the trigonometric circle: please check the implemented algorithm!')
+
+            first_neighbour_indices = neighbours_indeces[0]
+            second_neighbour_indices = neighbours_indeces[1]
+
+            first_neighbour_pixel = gradient_magnitude[first_neighbour_indices]
+            second_neighbour_pixel = gradient_magnitude[second_neighbour_indices]
+            current_pixel = gradient_magnitude[row_index, col_index]
+
+            if current_pixel >= first_neighbour_pixel and current_pixel >= second_neighbour_pixel:
+                suppressed_gradient_magnitude[row_index, col_index] = current_pixel
+
+    if output_dir is not None:
+        data = {'gradient magnitude': gradient_magnitude,
+                'suppressed gradient magnitude': suppressed_gradient_magnitude}
+        file_name = '{}_non_maxima_suppression.png'.format(gradient_method)
+        plot_images(data, file_name, output_dir)
+
+    return suppressed_gradient_magnitude
+
+
+def compute_gradients(image, gradient_method, output_dir=None):
     if not (isinstance(image, np.ndarray) and image.ndim == 2):
         raise ValueError('parameter image should be an 2D numpy array!')
 
-    if method == 'sobel':
+    if gradient_method == 'sobel':
         h_x, h_y = sobel_operators()
-    elif method == 'prewitt':
+    elif gradient_method == 'prewitt':
         h_x, h_y = prewitt_operators()
-    elif method == 'scharr':
+    elif gradient_method == 'scharr':
         h_x, h_y = scharr_operators()
     else:
-        raise ValueError('algorithm not implemented for method={}!'.format(method))
+        raise ValueError('algorithm not implemented for gradient method={}!'.format(gradient_method))
 
     G_x = scipy.ndimage.convolve(image, h_x)
     G_y = scipy.ndimage.convolve(image, h_y)
@@ -57,21 +171,13 @@ def compute_gradients(image, method, output_dir=None):
     gradient_orientation = np.arctan2(G_y, G_x)
 
     if output_dir is not None:
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-
         data = {'blurred image': image,
                 'horizontal gradient': G_x,
                 'vertical gradient': G_y,
                 'gradient magnitude': gradient_magnitude,
                 'gradient orientation': gradient_orientation}
-        fig, axes = plt.subplots(nrows=1, ncols=len(data), figsize=(15, 10))
-        for ax, (plot_title, img) in zip(axes, data.items()):
-            ax.imshow(img, cmap='gray')
-            ax.set_title(plot_title.capitalize())
-            ax.set_axis_off()
-        fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, '{}_gradients.png'.format(method)))
+        file_name = '{}_gradients.png'.format(gradient_method)
+        plot_images(data, file_name, output_dir)
 
     return gradient_magnitude, gradient_orientation
 
@@ -140,18 +246,10 @@ def gaussian_blur_with_opencv(image, kernel_size, sigma, output_dir):
     blurred_image = cv2.GaussianBlur(image, kernel_size, sigma)
 
     if output_dir is not None:
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-
         data = {'original image': image,
                 'blurred image: kernel_size={} sigma={}'.format(kernel_size, sigma): blurred_image}
-        fig, axes = plt.subplots(nrows=1, ncols=len(data), figsize=(15, 10))
-        for ax, (plot_title, img) in zip(axes, data.items()):
-            ax.imshow(img, cmap='gray')
-            ax.set_title(plot_title.capitalize())
-            ax.set_axis_off()
-        fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, 'gaussian_blurring_with_opencv.png'))
+        file_name = 'gaussian_blurring_with_opencv.png'
+        plot_images(data, file_name, output_dir)
 
     return blurred_image
 
@@ -177,22 +275,14 @@ def gaussian_blur_in_frequency(image, sigma, output_dir):
     blurred_image = np.fft.ifft2(np.fft.ifftshift(filtered_image_centered_spectrum)).real
 
     if output_dir is not None:
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-
         data = {'original image': image,
                 'spectrum of image': 20 * np.log10(np.abs(image_spectrum)),
                 'centered spectrum of image': 20 * np.log10(np.abs(image_centered_spectrum)),
                 'gaussian kernel': gaussian_kernel,
                 'filtered centered spectrum of image': 20 * np.log10(np.abs(filtered_image_centered_spectrum)),
                 'blurred image': blurred_image}
-        fig, axes = plt.subplots(nrows=1, ncols=len(data), figsize=(15, 10))
-        for ax, (plot_title, img) in zip(axes, data.items()):
-            ax.imshow(img, cmap='gray')
-            ax.set_title(plot_title.capitalize())
-            ax.set_axis_off()
-        fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, 'gaussian_blurring_in_frequency.png'))
+        file_name = 'gaussian_blurring_in_frequency.png'
+        plot_images(data, file_name, output_dir)
 
     return blurred_image
 
@@ -236,13 +326,8 @@ def gaussian_blur_with_convolution(image, kernel_size, sigma, output_dir):
         data = {'original image': image,
                 'gaussian kernel: size={} sigma={}'.format(kernel_size, sigma): gaussian_kernel,
                 'blurred image': blurred_image}
-        fig, axes = plt.subplots(nrows=1, ncols=len(data), figsize=(15, 10))
-        for ax, (plot_title, img) in zip(axes, data.items()):
-            ax.imshow(img, cmap='gray')
-            ax.set_title(plot_title.capitalize())
-            ax.set_axis_off()
-        fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, 'gaussian_blurring_with_convolution.png'))
+        file_name = 'gaussian_blurring_with_convolution.png'
+        plot_images(data, file_name, output_dir)
 
     return blurred_image
 
