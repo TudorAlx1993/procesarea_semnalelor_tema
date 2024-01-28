@@ -15,7 +15,6 @@ def main():
     kernel_size = (5, 5)
     sigma = 1.0
     blurred_image_with_convolution = gaussian_blur_with_convolution(image, kernel_size, sigma, output_dir)
-    '''
     blurred_image_in_frequency = gaussian_blur_in_frequency(image, 100.0, output_dir)
     blurred_image_with_opencv = gaussian_blur_with_opencv(image.astype('uint8'), kernel_size, sigma, output_dir)
     # ne uitam la diferentele intre cele 3 variante de gaussian blurring
@@ -24,7 +23,7 @@ def main():
                                                                         sigma): blurred_image_with_convolution,
             'blurring in frequency': blurred_image_in_frequency,
             'blurring with opencv\nkernel_size={} sigma={}'.format(kernel_size, sigma): blurred_image_with_opencv}
-    plot_images(data, 'gaussian_blurring.png', output_dir)'''
+    plot_images(data, 'gaussian_blurring.png', output_dir)
 
     # pasul 2: calculul gradientului
     output_dir = os.path.join(template_output_dir, 'gradients')
@@ -65,6 +64,97 @@ def main():
     scharr_suppressed_gradient_magnitude = non_maxima_suppression(scharr_gradient_magnitude,
                                                                   scharr_gradient_orientation,
                                                                   gradient_method, output_dir)
+
+    # pasul 4: edge detection (thresholding si unirea muchiilor)
+    output_dir = os.path.join(template_output_dir, 'edge_detection')
+
+    min_threshold = 5.0
+    max_threshold = 15.0
+
+    # utilizand operatorii lui Sobel
+    gradient_method = 'sobel'
+    edges_sobel = edge_detection(sobel_suppressed_gradient_magnitude, min_threshold, max_threshold, gradient_method,
+                                 output_dir)
+
+    # utilizand operatorii lui Prewitt
+    gradient_method = 'prewitt'
+    edges_prewitt = edge_detection(prewitt_suppressed_gradient_magnitude, min_threshold, max_threshold, gradient_method,
+                                   output_dir)
+
+    # utilizand operatorii lui Scharr
+    gradient_method = 'scharr'
+    edges_scharr = edge_detection(scharr_suppressed_gradient_magnitude, min_threshold, max_threshold, gradient_method,
+                                  output_dir)
+
+    data = {'original image': image,
+            'Sobel operators': edges_sobel,
+            'Prewitt operators': edges_prewitt,
+            'Scharr operator': edges_scharr}
+    file_name = 'my_implementation_vs_opencv.png'
+    output_dir = os.path.join(template_output_dir, 'original_and_edges')
+    plot_images(data, file_name, output_dir)
+
+
+def edge_detection(gradient_magnitude, min_threshold, max_threshold, gradient_method, output_dir=None):
+    if not (isinstance(gradient_magnitude, np.ndarray) and gradient_magnitude.ndim == 2):
+        raise ValueError('parameter gradient_magnitude should be an 2D numpy array!')
+    if not (isinstance(min_threshold, float) and isinstance(max_threshold, float) and min_threshold < max_threshold):
+        raise ValueError(
+            'parameters min_threshold and max_threshold must be of type float and min_threshold<max_threshold!')
+
+    '''
+    Explicatii:
+        * pe baza celor 2 threshold-uri stabilim ce pixeli fac parte din muchii
+        * avem 3 tipuri de pixeli:
+            * non muchie: cu pixeli mai mici decat min_threshold si nu sunt luati in considerare
+            * strong: cu pixelii mai mari ca max_threshold (ei fac parte sigur din muchie)
+            * weak: cu pixeli intre min_threshold si max_threshold (pot sau nu face parte din muchie)
+    '''
+
+    # stabilim si marcam edge-urile care sunt strong si weak
+    strong_edges = np.zeros_like(gradient_magnitude)
+    weak_edges = np.zeros_like(gradient_magnitude)
+
+    strong_edges_indices = gradient_magnitude >= max_threshold
+    weak_edges_indices = ((gradient_magnitude >= min_threshold) & (gradient_magnitude < max_threshold))
+
+    edge_mark = 255
+    strong_edges[strong_edges_indices] = edge_mark
+    weak_edges[weak_edges_indices] = edge_mark
+
+    edges = strong_edges.copy()
+
+    # daca un pixel weak este conectat (prin unul din cei 8 pixeli vecini) la pixelii strong
+    # atunci si acest pixel va face parte din muchie
+    no_rows, no_cols = weak_edges.shape
+    for row_index in range(no_rows):
+        for col_index in range(no_cols):
+            if row_index == 0 or col_index == 0:
+                continue
+            if row_index == no_rows - 1 or col_index == no_cols - 1:
+                continue
+
+            if weak_edges[row_index, col_index] != 0:
+                neighbours_pixels = []
+                neighbours_pixels.append(strong_edges[row_index - 1, col_index])
+                neighbours_pixels.append(strong_edges[row_index + 1, col_index])
+                neighbours_pixels.append(strong_edges[row_index, col_index - 1])
+                neighbours_pixels.append(strong_edges[row_index, col_index + 1])
+                neighbours_pixels.append(strong_edges[row_index - 1, col_index + 1])
+                neighbours_pixels.append(strong_edges[row_index + 1, col_index - 1])
+                neighbours_pixels.append(strong_edges[row_index - 1, col_index - 1])
+                neighbours_pixels.append(strong_edges[row_index + 1, col_index + 1])
+
+                if np.sum(neighbours_pixels) > 0:
+                    edges[row_index, col_index] = edge_mark
+
+    if output_dir is not None:
+        data = {'non maxima suppression': gradient_magnitude,
+                'edge detection:\nmin_threshold={}\nmax_threshold={}'.format(min_threshold, max_threshold): edges}
+        file_name = 'edge_detection_{}.png'.format(gradient_method)
+        plot_images(data, file_name, output_dir)
+
+    return edges
 
 
 def non_maxima_suppression(gradient_magnitude, gradient_orientation, gradient_method, output_dir=None):
