@@ -3,12 +3,28 @@ import scipy
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from skimage import io, color
 
 
 def main():
     # exemplul 1: ascent image din scipy
     image = scipy.datasets.ascent().astype('int32')
     template_output_dir = './outputs/example_1'
+
+    # # exemplul 2: imagine cu monede
+    # image = io.imread('input\\50 bani.png')
+    # image = image[:, :, :3]
+    # image = color.rgb2gray(image)
+    #
+    # template_output_dir = './outputs/example_2'
+
+    # # exemplul 3: imagine cu monede
+    # image = io.imread('input\\10 bani.png')
+    # image = image[:, :, :3]
+    # image = color.rgb2gray(image)
+    #
+    # template_output_dir = './outputs/example_3'
+
 
     # pasul 1: gaussian blurring
     output_dir = os.path.join(template_output_dir, 'gaussian_blurring')
